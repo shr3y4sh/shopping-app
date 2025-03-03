@@ -1,0 +1,25 @@
+{
+	"name": "intro-to-node",
+	"version": "1.0.0",
+	"description": "",
+	"license": "ISC",
+	"author": "Shreyash",
+	"main": "app.js",
+	
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1",
+		"start": "nodemon app.js"
+	},
+	"devDependencies": {
+		"@eslint/js": "^9.21.0",
+		"eslint": "^9.21.0",
+		"globals": "^16.0.0",
+		"nodemon": "^3.1.9"
+	},
+	"dependencies": {
+		"body-parser": "^1.20.3",
+		"ejs": "^3.1.10",
+		"express": "^4.21.2",
+		"pug": "^3.0.3"
+	}
+}
