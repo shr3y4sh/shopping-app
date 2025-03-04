@@ -4,12 +4,19 @@ const rootDir = path.dirname(require.main.filename);
 
 const pathToJson = path.join(rootDir, 'data', 'products.json');
 
-const getProductsFromFile = (callback) => {
+const getProductsFromFile = (calling) => {
 	fs.readFile(pathToJson, (err, fileContent) => {
-		if (!err) {
-			callback(JSON.parse(fileContent));
+		if (err) {
+			calling([]);
 		} else {
-			callback([]);
+			try {
+				calling(JSON.parse(fileContent));
+				console.log('file reading success');
+			} catch (e) {
+				console.log(e);
+
+				calling([]);
+			}
 		}
 	});
 };
@@ -23,7 +30,9 @@ module.exports = class Product {
 	}
 
 	save() {
-		this.id = Math.floor(Math.random() * 10000000).toString();
+		this.id = Math.floor(Math.random() * 10000000)
+			.toString()
+			.trim();
 		getProductsFromFile((products) => {
 			products.push(this);
 			fs.writeFile(pathToJson, JSON.stringify(products), (err) => {
@@ -32,14 +41,23 @@ module.exports = class Product {
 		});
 	}
 
-	static fetchAll(callback) {
-		getProductsFromFile(callback);
+	getPrice() {
+		return this.price;
 	}
 
-	static findById(id, callback) {
+	static fetchAll(calling) {
+		console.log('fetchAll');
+
+		getProductsFromFile(calling);
+	}
+
+	static findById(id, calling) {
+		// console.log('findById function in product class');
+
 		getProductsFromFile((products) => {
-			const product = products.find((p) => p.id === id);
-			callback(product);
+			const product = products.find((p) => p.id.trim() === id.trim());
+
+			calling(product);
 		});
 	}
 };

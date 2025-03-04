@@ -40,12 +40,12 @@ exports.getCart = (req, res) => {
 };
 
 exports.postCart = (req, res) => {
-	const prodId = req.body.productId;
-	console.log(prodId);
+	const productId = req.body.productId;
 
-	Product.findById(prodId, (product) => {
-		Cart.addProduct(prodId, product.price);
+	Product.findById(productId, (product) => {
+		Cart.addProduct(productId, product.price);
 	});
+
 	res.redirect('/cart');
 };
 
