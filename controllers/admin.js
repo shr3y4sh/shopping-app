@@ -35,6 +35,7 @@ exports.postEditProduct = (req, res) => {
 	console.log(updatedProduct);
 
 	updatedProduct.save();
+	res.redirect('/admin/products');
 };
 
 exports.getProducts = (req, res) => {
@@ -68,6 +69,12 @@ exports.getEditProduct = (req, res) => {
 			product: product
 		});
 	});
+};
+
+exports.postDeleteProduct = (req, res) => {
+	const prodId = req.body.productId;
+	Product.deleteProduct(prodId);
+	res.redirect('/admin/products');
 };
 
 /* 
