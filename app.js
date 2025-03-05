@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 
-const rootDir = require('./util/path');
+const rootDir = path.dirname(require.main.filename);
 const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
 const errorRoute = require('./controllers/error');

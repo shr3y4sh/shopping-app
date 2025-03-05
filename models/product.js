@@ -11,7 +11,6 @@ const getProductsFromFile = (calling) => {
 		} else {
 			try {
 				calling(JSON.parse(fileContent));
-				console.log('file reading success');
 			} catch (e) {
 				console.log(e);
 
@@ -22,7 +21,8 @@ const getProductsFromFile = (calling) => {
 };
 
 module.exports = class Product {
-	constructor(title, imageUrl, description, price) {
+	constructor(id, title, imageUrl, description, price) {
+		this.id = id;
 		this.title = title;
 		this.imageUrl = imageUrl;
 		this.description = description;
@@ -30,14 +30,28 @@ module.exports = class Product {
 	}
 
 	save() {
-		this.id = Math.floor(Math.random() * 10000000)
-			.toString()
-			.trim();
 		getProductsFromFile((products) => {
-			products.push(this);
-			fs.writeFile(pathToJson, JSON.stringify(products), (err) => {
-				console.log(err);
-			});
+			if (this.id) {
+				const existingProductIndex = products.findIndex(
+					(prod) => prod.id === this.id
+				);
+				console.log(existingProductIndex);
+
+				// const updatedProducts = [...products];
+				// updatedProducts[existingProductIndex] = this;
+				products[existingProductIndex] = this;
+				fs.writeFile(pathToJson, JSON.stringify(products), (err) => {
+					console.log(err);
+				});
+			} else {
+				this.id = Math.floor(Math.random() * 10000000)
+					.toString()
+					.trim();
+				products.push(this);
+				fs.writeFile(pathToJson, JSON.stringify(products), (err) => {
+					console.log(err);
+				});
+			}
 		});
 	}
 
@@ -46,16 +60,12 @@ module.exports = class Product {
 	}
 
 	static fetchAll(calling) {
-		console.log('fetchAll');
-
 		getProductsFromFile(calling);
 	}
 
 	static findById(id, calling) {
-		// console.log('findById function in product class');
-
 		getProductsFromFile((products) => {
-			const product = products.find((p) => p.id.trim() === id.trim());
+			const product = products.find((p) => p.id === id);
 
 			calling(product);
 		});
