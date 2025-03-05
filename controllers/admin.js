@@ -71,6 +71,12 @@ exports.getEditProduct = (req, res) => {
 	});
 };
 
+exports.postDeleteProduct = (req, res) => {
+	const prodId = req.body.productId;
+	Product.deleteProduct(prodId);
+	res.redirect('/admin/products');
+};
+
 /* 
 http://localhost:3000/admin/edit-product/2123989?edit=true
 */
