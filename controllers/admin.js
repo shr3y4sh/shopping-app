@@ -1,4 +1,3 @@
-// const { post } = require("../routes/shop");
 const Product = require('../models/product');
 
 exports.getAddProduct = (req, res) => {
@@ -15,7 +14,7 @@ exports.postAddProduct = async (req, res) => {
 	const price = req.body.price;
 	const description = req.body.description;
 
-	const result = await Product.create({
+	await req.user.createProduct({
 		title: title,
 		price: price,
 		imageurl: imageUrl,
@@ -44,7 +43,7 @@ exports.postEditProduct = async (req, res) => {
 };
 
 exports.getProducts = async (req, res) => {
-	const products = await Product.findAll();
+	const products = await req.user.getProducts();
 	res.render('admin/products', {
 		prods: products,
 		pageTitle: 'Admin Products',
@@ -61,7 +60,11 @@ exports.getEditProduct = async (req, res) => {
 
 	const prodId = req.params.productId.trim();
 
-	const product = await Product.findByPk(prodId);
+	const product = await req.user.getProducts({
+		where: {
+			id: prodId
+		}
+	});
 
 	if (!product) {
 		return res.redirect('/');
@@ -71,7 +74,7 @@ exports.getEditProduct = async (req, res) => {
 		pageTitle: 'Edit Product',
 		path: '/admin/edit-product',
 		editing: true,
-		product: product
+		product: product[0]
 	});
 };
 
