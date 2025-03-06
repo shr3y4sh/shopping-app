@@ -2,11 +2,11 @@ const Product = require('../models/product');
 const Cart = require('../models/cart');
 
 exports.getProducts = async (req, res) => {
-	const result = await Product.fetchAll();
+	const result = await Product.findAll();
 	console.log(result);
 
 	res.render('shop/product-list', {
-		prods: result.rows,
+		prods: result,
 		pageTitle: 'All Products',
 		path: '/products'
 	});
@@ -14,22 +14,21 @@ exports.getProducts = async (req, res) => {
 
 exports.getProduct = async (req, res) => {
 	const prodId = req.params.productId;
-	const result = await Product.findById(prodId.toString().trim());
-	console.log(result);
+	const result = await Product.findByPk(prodId);
 
 	res.render('shop/product-detail', {
-		product: result.rows[0],
-		pageTitle: result.rows[0].title,
+		product: result,
+		pageTitle: result.title,
 		path: '/products'
 	});
 };
 
 exports.getIndex = async (req, res) => {
-	const result = await Product.fetchAll();
+	const result = await Product.findAll();
 	console.log(result);
 
 	res.render('shop/index', {
-		prods: result.rows,
+		prods: result,
 		pageTitle: 'Shop',
 		path: '/'
 	});

@@ -15,41 +15,44 @@ exports.postAddProduct = async (req, res) => {
 	const price = req.body.price;
 	const description = req.body.description;
 
-	const product = new Product(null, title, imageUrl, description, price);
-	await product.save();
-	res.redirect('/');
+	const result = await Product.create({
+		title: title,
+		price: price,
+		imageurl: imageUrl,
+		description: description
+	});
+
+	res.redirect('/admin/products');
 };
 
-exports.postEditProduct = (req, res) => {
+exports.postEditProduct = async (req, res) => {
 	const prodId = req.body.productId.trim();
 	const updatedTitle = req.body.title;
 	const updatedPrice = req.body.price;
 	const updatedImageUrl = req.body.imageUrl;
 	const updatedDescription = req.body.description;
-	const updatedProduct = new Product(
-		prodId,
-		updatedTitle,
-		updatedImageUrl,
-		updatedDescription,
-		updatedPrice
-	);
-	console.log(updatedProduct);
 
-	updatedProduct.save();
+	const product = await Product.findByPk(prodId);
+	product.title = updatedTitle;
+	product.price = updatedPrice;
+	product.imageurl = updatedImageUrl;
+	product.description = updatedDescription;
+
+	await product.save();
+
 	res.redirect('/admin/products');
 };
 
-exports.getProducts = (req, res) => {
-	Product.fetchAll((products) => {
-		res.render('admin/products', {
-			prods: products,
-			pageTitle: 'Admin Products',
-			path: '/admin/products'
-		});
+exports.getProducts = async (req, res) => {
+	const products = await Product.findAll();
+	res.render('admin/products', {
+		prods: products,
+		pageTitle: 'Admin Products',
+		path: '/admin/products'
 	});
 };
 
-exports.getEditProduct = (req, res) => {
+exports.getEditProduct = async (req, res) => {
 	const editMode = Boolean(req.query.edit);
 
 	if (!editMode) {
@@ -58,23 +61,24 @@ exports.getEditProduct = (req, res) => {
 
 	const prodId = req.params.productId.trim();
 
-	Product.findById(prodId, (product) => {
-		if (!product) {
-			return res.redirect('/');
-		}
+	const product = await Product.findByPk(prodId);
 
-		res.render('admin/edit-product', {
-			pageTitle: 'Edit Product',
-			path: '/admin/edit-product',
-			editing: true,
-			product: product
-		});
+	if (!product) {
+		return res.redirect('/');
+	}
+
+	res.render('admin/edit-product', {
+		pageTitle: 'Edit Product',
+		path: '/admin/edit-product',
+		editing: true,
+		product: product
 	});
 };
 
-exports.postDeleteProduct = (req, res) => {
+exports.postDeleteProduct = async (req, res) => {
 	const prodId = req.body.productId;
-	Product.deleteProduct(prodId);
+	const product = await Product.findByPk(prodId);
+	await product.destroy();
 	res.redirect('/admin/products');
 };
 

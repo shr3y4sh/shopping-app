@@ -1,47 +1,27 @@
-const pool = require('../util/database');
+const Sequelize = require('sequelize');
 
-module.exports = class Product {
-	constructor(id, title, imageUrl, description, price) {
-		this.id = id;
-		this.title = title;
-		this.imageUrl = imageUrl;
-		this.description = description;
-		this.price = price;
+const sequelize = require('../util/database');
+
+const Product = sequelize.define('product', {
+	id: {
+		type: Sequelize.INTEGER,
+		autoIncrement: true,
+		allowNull: false,
+		primaryKey: true
+	},
+	title: Sequelize.STRING,
+	price: {
+		type: Sequelize.DOUBLE,
+		allowNull: false
+	},
+	imageurl: {
+		type: Sequelize.STRING,
+		allowNull: false
+	},
+	description: {
+		type: Sequelize.STRING,
+		allowNull: false
 	}
+});
 
-	async save() {
-		try {
-			const text =
-				'INSERT INTO products (title, price, imageurl, description) VALUES ($1, $2, $3, $4)';
-			const values = [
-				this.title,
-				this.price,
-				this.imageUrl,
-				this.description
-			];
-			return await pool.query(text, values);
-		} catch (error) {
-			console.log(error);
-		}
-	}
-
-	static async fetchAll() {
-		try {
-			const text = 'SELECT * FROM products';
-			return await pool.query(text);
-		} catch (error) {
-			console.log(error);
-		}
-	}
-
-	static async findById(id) {
-		try {
-			const text = 'SELECT * FROM products WHERE id = $1';
-			return await pool.query(text, [id]);
-		} catch (error) {
-			console.log(error);
-		}
-	}
-
-	// static deleteProduct(id) {}
-};
+module.exports = Product;
