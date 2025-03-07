@@ -44,15 +44,17 @@ exports.getIndex = async (req, res) => {
 };
 
 exports.getCart = async (req, res) => {
-	const cart = await req.user.getCart();
+	try {
+		const cartProducts = await req.user.getCart();
 
-	const cartProducts = await cart.getProducts();
-
-	res.render('shop/cart', {
-		path: '/cart',
-		pageTitle: 'Cart',
-		products: cartProducts
-	});
+		res.render('shop/cart', {
+			path: '/cart',
+			pageTitle: 'Cart',
+			products: cartProducts
+		});
+	} catch (error) {
+		console.log(error);
+	}
 };
 
 exports.getOrders = async (req, res) => {
@@ -87,39 +89,26 @@ exports.postOrder = async (req, res) => {
 };
 
 exports.postCart = async (req, res) => {
-	const prodId = req.body.productId.trim();
+	try {
+		const prodId = req.body.productId.trim();
+		const product = await Product.findBySerial(prodId);
+		const result = await req.user.addToCart(product);
+		console.log(result);
 
-	const cart = await req.user.getCart();
-
-	const products = await cart.getProducts({ where: { id: prodId } });
-
-	let product;
-	if (products.length > 0) {
-		product = products[0];
+		res.redirect('/cart');
+	} catch (error) {
+		console.log(error);
 	}
-	let newQuantity = 1;
-
-	if (!product) {
-		product = await Product.findByPk(prodId);
-	} else {
-		const oldQuantity = product.cartItem.quantity;
-		newQuantity = oldQuantity + 1;
-	}
-
-	await cart.addProduct(product, { through: { quantity: newQuantity } });
-
-	res.redirect('/cart');
 };
 
 exports.postDeleteCartItem = async (req, res) => {
-	const prodId = req.body.productId;
+	try {
+		const prodId = req.body.productId.trim();
 
-	const cart = await req.user.getCart();
+		await req.user.deleteItemFromCart(prodId);
 
-	const [product] = await cart.getProducts({ where: { id: prodId } });
-	console.log(product);
-
-	await product.cartItem.destroy();
-
-	res.redirect('/cart');
+		res.redirect('/cart');
+	} catch (error) {
+		console.log(error);
+	}
 };

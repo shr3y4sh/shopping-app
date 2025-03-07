@@ -3,14 +3,14 @@ const mongodb = require('mongodb');
 const MongodbClient = mongodb.MongoClient;
 
 const uri =
-	'mongodb+srv://marshall:Sqnd1eS83jXaJqAQ@nodecluster.eh4s9.mongodb.net/shop?retryWrites=true&w=majority&appName=nodeCluster';
+	'mongodb+srv://marshall:Sqnd1eS83jXaJqAQ@nodecluster.eh4s9.mongodb.net/?retryWrites=true&w=majority&appName=nodeCluster';
 
 let _db;
 
 exports.mongoConnect = async (callback) => {
 	try {
 		const client = await MongodbClient.connect(uri);
-		_db = client.db();
+		_db = client.db('shop');
 
 		callback();
 	} catch (err) {

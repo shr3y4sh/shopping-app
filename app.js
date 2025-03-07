@@ -24,8 +24,8 @@ app.use(
 
 app.use(async (req, res, next) => {
 	try {
-		const user = await User.findUserById('49ee68');
-		req.user = user;
+		const user = await User.findUserById('qOvaHOI7cc0fOZgcgewGA');
+		req.user = new User(user.name, user.email, user.userId, user.cart);
 		next();
 	} catch (error) {
 		console.log(error);
@@ -41,6 +41,8 @@ app.use(errorRoute.get404);
 (async function startServer() {
 	try {
 		await mongoConnect(() => {
+			console.log('MongoDB connected');
+
 			app.listen(port, () => {
 				console.log(`Server running on port ${port}`);
 			});

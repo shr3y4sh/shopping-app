@@ -3,11 +3,12 @@ const { nanoid } = require('nanoid');
 const getDb = require('../util/database').getDb;
 
 class Product {
-	constructor(title, price, imageurl, description, serial) {
+	constructor(title, price, imageurl, description, userId, serial) {
 		this.title = title;
 		this.price = price;
 		this.imageurl = imageurl;
 		this.description = description;
+		this.userId = userId;
 		this.serial = serial;
 	}
 
