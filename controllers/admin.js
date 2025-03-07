@@ -24,67 +24,75 @@ exports.postAddProduct = async (req, res) => {
 	}
 };
 
-/*
+exports.getProducts = async (req, res) => {
+	try {
+		const products = await Product.fetchAll();
+		res.render('admin/products', {
+			prods: products,
+			pageTitle: 'Admin Products',
+			path: '/admin/products'
+		});
+	} catch (error) {
+		console.log(error);
+	}
+};
+
+exports.getEditProduct = async (req, res) => {
+	try {
+		const editMode = Boolean(req.query.edit);
+
+		if (!editMode) {
+			return res.redirect('/');
+		}
+
+		const prodId = req.params.productId.toString(16);
+
+		const product = await Product.findBySerial(prodId);
+
+		if (!product) {
+			return res.redirect('/');
+		}
+
+		res.render('admin/edit-product', {
+			pageTitle: 'Edit Product',
+			path: '/admin/edit-product',
+			editing: true,
+			product: product
+		});
+	} catch (error) {
+		console.log(error);
+	}
+};
 
 exports.postEditProduct = async (req, res) => {
-	const prodId = req.body.productId.trim();
 	const updatedTitle = req.body.title;
 	const updatedPrice = req.body.price;
 	const updatedImageUrl = req.body.imageUrl;
 	const updatedDescription = req.body.description;
-
-	const product = await Product.findByPk(prodId);
-	product.title = updatedTitle;
-	product.price = updatedPrice;
-	product.imageurl = updatedImageUrl;
-	product.description = updatedDescription;
+	const serial = req.body.productId.toString(16);
+	const product = new Product(
+		updatedTitle,
+		updatedPrice,
+		updatedImageUrl,
+		updatedDescription,
+		serial
+	);
 
 	await product.save();
 
 	res.redirect('/admin/products');
 };
 
-exports.getProducts = async (req, res) => {
-	const products = await req.user.getProducts();
-	res.render('admin/products', {
-		prods: products,
-		pageTitle: 'Admin Products',
-		path: '/admin/products'
-	});
-};
-
-exports.getEditProduct = async (req, res) => {
-	const editMode = Boolean(req.query.edit);
-
-	if (!editMode) {
-		return res.redirect('/');
-	}
-
-	const prodId = req.params.productId.trim();
-
-	const product = await req.user.getProducts({
-		where: {
-			id: prodId
-		}
-	});
-
-	if (!product) {
-		return res.redirect('/');
-	}
-
-	res.render('admin/edit-product', {
-		pageTitle: 'Edit Product',
-		path: '/admin/edit-product',
-		editing: true,
-		product: product[0]
-	});
-};
-
 exports.postDeleteProduct = async (req, res) => {
-	const prodId = req.body.productId;
-	const product = await Product.findByPk(prodId);
-	await product.destroy();
-	res.redirect('/admin/products');
+	try {
+		const serial = req.body.productId.toString(16);
+		const result = await Product.deleteBySerial(serial);
+		console.log(result);
+
+		res.redirect('/admin/products');
+	} catch (error) {
+		console.log(error);
+	}
 };
 
 /* 

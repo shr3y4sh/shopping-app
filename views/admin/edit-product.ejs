@@ -32,7 +32,7 @@
                             rows="5"><%if (locals.editing) {%><%=product.description%><%}%></textarea>
                     </div>
                     <% if (locals.editing) {%>
-                        <input type="hidden" value="<%=product.id%>" name="productId">
+                        <input type="hidden" value="<%=product.serial%>" name="productId">
                         <%}%>
                             <button class="btn" type="submit">
                                 <% if (locals.editing) { %>Update Product<%} else {%>Add Product<%}%>
