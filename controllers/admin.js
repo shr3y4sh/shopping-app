@@ -14,15 +14,17 @@ exports.postAddProduct = async (req, res) => {
 	const price = req.body.price;
 	const description = req.body.description;
 
-	await req.user.createProduct({
-		title: title,
-		price: price,
-		imageurl: imageUrl,
-		description: description
-	});
-
-	res.redirect('/admin/products');
+	const product = new Product(title, price, imageUrl, description);
+	try {
+		const result = await product.save();
+		console.log(result);
+		res.redirect('/');
+	} catch (err) {
+		console.log(err);
+	}
 };
+
+/*
 
 exports.postEditProduct = async (req, res) => {
 	const prodId = req.body.productId.trim();
