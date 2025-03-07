@@ -130,3 +130,4 @@ dist
 .pnp.*
 
 __MACOSX/
+misc_data_secret/
