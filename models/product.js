@@ -1,16 +1,6 @@
+const { nanoid } = require('nanoid');
+
 const getDb = require('../util/database').getDb;
-
-const serialList = [];
-
-async function createSerial() {
-	while (true) {
-		const number = Math.floor(Math.random() * 10000000).toString(16);
-		if (serialList.indexOf(number) === -1) {
-			serialList.push(number);
-			return number;
-		}
-	}
-}
 
 class Product {
 	constructor(title, price, imageurl, description, serial) {
@@ -35,7 +25,7 @@ class Product {
 					}
 				);
 			} else {
-				this.serial = await createSerial();
+				this.serial = nanoid();
 				result = await db.collection('products').insertOne(this);
 			}
 			return result;
@@ -69,7 +59,6 @@ class Product {
 	static async findBySerial(serial) {
 		try {
 			const db = getDb();
-			console.log(serial);
 
 			const result = await db
 				.collection('products')
@@ -78,7 +67,6 @@ class Product {
 				})
 				.next();
 
-			console.log(result);
 			return result;
 		} catch (error) {
 			console.log(error);
@@ -87,5 +75,3 @@ class Product {
 }
 
 module.exports = Product;
-
-// 67ca8b6ff64da3bd280e8501

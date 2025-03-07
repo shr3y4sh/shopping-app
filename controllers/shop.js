@@ -16,7 +16,7 @@ exports.getProducts = async (req, res) => {
 
 exports.getProduct = async (req, res) => {
 	try {
-		const prodId = req.params.productId.toString(16);
+		const prodId = req.params.productId;
 		const result = await Product.findBySerial(prodId);
 
 		res.render('shop/product-detail', {

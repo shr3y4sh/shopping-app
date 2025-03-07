@@ -4,6 +4,8 @@ const path = require('path');
 
 const mongoConnect = require('./util/database').mongoConnect;
 
+const User = require('./models/user');
+
 const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
 const errorRoute = require('./controllers/error');
@@ -20,11 +22,15 @@ app.use(
 	express.static(path.join(path.dirname(require.main.filename), 'public'))
 );
 
-// app.use(async (req, res, next) => {
-// 	const user = await User.findByPk(1);
-// 	req.user = user;
-// 	next();
-// });
+app.use(async (req, res, next) => {
+	try {
+		const user = await User.findUserById('49ee68');
+		req.user = user;
+		next();
+	} catch (error) {
+		console.log(error);
+	}
+});
 
 app.use('/admin', adminRoutes);
 

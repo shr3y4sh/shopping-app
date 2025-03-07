@@ -1,16 +1,40 @@
-const Sequelize = require('sequelize');
+const getDb = require('../util/database').getDb;
+const { nanoid } = require('nanoid');
 
-const sequelize = require('../util/database');
+class User {
+	constructor(username, email, serial) {
+		this.username = username;
+		this.email = email;
+		this.userId = serial;
+	}
 
-const User = sequelize.define('user', {
-	id: {
-		type: Sequelize.INTEGER,
-		autoIncrement: true,
-		allowNull: false,
-		primaryKey: true
-	},
-	name: Sequelize.STRING,
-	email: Sequelize.STRING
-});
+	async save() {
+		///
+		try {
+			const db = getDb();
+			this.userId = nanoid();
+			const result = await db.collection('users').insertOne(this);
+			return result;
+		} catch (err) {
+			console.log(err);
+		}
+	}
+
+	static async findUserById(serial) {
+		try {
+			const db = getDb();
+			console.log(serial);
+
+			const result = await db.collection('users').findOne({
+				userId: serial
+			});
+
+			console.log(result);
+			return result;
+		} catch (error) {
+			console.log(error);
+		}
+	}
+}
 
 module.exports = User;

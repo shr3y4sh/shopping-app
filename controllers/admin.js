@@ -45,7 +45,7 @@ exports.getEditProduct = async (req, res) => {
 			return res.redirect('/');
 		}
 
-		const prodId = req.params.productId.toString(16);
+		const prodId = req.params.productId;
 
 		const product = await Product.findBySerial(prodId);
 
@@ -69,7 +69,7 @@ exports.postEditProduct = async (req, res) => {
 	const updatedPrice = req.body.price;
 	const updatedImageUrl = req.body.imageUrl;
 	const updatedDescription = req.body.description;
-	const serial = req.body.productId.toString(16);
+	const serial = req.body.productId;
 	const product = new Product(
 		updatedTitle,
 		updatedPrice,
@@ -85,7 +85,7 @@ exports.postEditProduct = async (req, res) => {
 
 exports.postDeleteProduct = async (req, res) => {
 	try {
-		const serial = req.body.productId.toString(16);
+		const serial = req.body.productId;
 		const result = await Product.deleteBySerial(serial);
 		console.log(result);
 
