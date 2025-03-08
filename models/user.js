@@ -1,6 +1,79 @@
-const getDb = require('../util/database').getDb;
-const { nanoid } = require('nanoid');
+const mongoose = require('mongoose');
 
+const userSchema = new mongoose.Schema({
+	username: {
+		type: String,
+		required: true
+	},
+	email: {
+		type: String,
+		required: true
+	},
+	cart: {
+		items: [
+			{
+				productId: {
+					type: mongoose.Schema.Types.ObjectId,
+					ref: 'Product',
+					required: true
+				},
+				quantity: {
+					type: Number,
+					required: true
+				}
+			}
+		]
+	}
+});
+
+userSchema.methods.clearCart = async function () {
+	this.cart = { items: [] };
+	return await this.save();
+};
+
+userSchema.methods.addToCart = async function (product) {
+	try {
+		const cartProductIndex = await this.cart.items.findIndex(
+			(cp) => cp.productId.toString() === product._id.toString()
+		);
+		let newQuantity = 1;
+		const updatedCartItems = [...this.cart.items];
+		if (cartProductIndex >= 0) {
+			newQuantity = this.cart.items[cartProductIndex].quantity + 1;
+			updatedCartItems[cartProductIndex].quantity = newQuantity;
+		} else {
+			updatedCartItems.push({
+				productId: product._id,
+				quantity: newQuantity
+			});
+		}
+		const updatedCart = {
+			items: updatedCartItems
+		};
+		this.cart = updatedCart;
+		return await this.save();
+	} catch (error) {
+		console.log(error);
+	}
+};
+
+userSchema.methods.removeFromCart = async function (productId) {
+	try {
+		const updatedCartItems = this.cart.items.filter(
+			(item) => item.productId.toString() !== productId.toString()
+		);
+
+		this.cart.items = updatedCartItems;
+
+		return await this.save();
+	} catch (error) {
+		console.log(error);
+	}
+};
+
+module.exports = mongoose.model('User', userSchema);
+
+/*
 class User {
 	constructor(username, email, serial, cart) {
 		this.username = username;
@@ -22,36 +95,7 @@ class User {
 	}
 
 	async addToCart(product) {
-		try {
-			const cartProductIndex = this.cart.items.findIndex(
-				(cp) => cp.productId === product.serial
-			);
-			let newQuantity = 1;
-			const updatedCartItems = [...this.cart.items];
-			if (cartProductIndex >= 0) {
-				newQuantity = this.cart.items[cartProductIndex].quantity + 1;
-				updatedCartItems[cartProductIndex].quantity = newQuantity;
-			} else {
-				updatedCartItems.push({
-					productId: product.serial,
-					quantity: 1
-				});
-			}
-			const updatedCart = {
-				items: updatedCartItems
-			};
-			const db = getDb();
-			return await db.collection('users').updateOne(
-				{
-					userId: this.userId
-				},
-				{
-					$set: { cart: updatedCart }
-				}
-			);
-		} catch (error) {
-			console.log(error);
-		}
+		
 	}
 
 	async getCart() {
@@ -153,5 +197,4 @@ class User {
 		}
 	}
 }
-
-module.exports = User;
+*/

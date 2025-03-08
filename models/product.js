@@ -1,7 +1,34 @@
-const { nanoid } = require('nanoid');
+// const { nanoid } = require('nanoid');
 
-const getDb = require('../util/database').getDb;
+const mongoose = require('mongoose');
+const productSchema = new mongoose.Schema({
+	title: {
+		type: String,
+		required: true
+	},
+	price: {
+		type: Number,
+		required: true
+	},
+	imageurl: {
+		type: String,
+		required: true
+	},
+	description: {
+		type: String,
+		required: true
+	},
 
+	userId: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User',
+		required: true
+	}
+});
+
+module.exports = mongoose.model('Product', productSchema);
+
+/*
 class Product {
 	constructor(title, price, imageurl, description, userId, serial) {
 		this.title = title;
@@ -76,3 +103,4 @@ class Product {
 }
 
 module.exports = Product;
+*/

@@ -2,7 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 
-const mongoConnect = require('./util/database').mongoConnect;
+const mongoose = require('mongoose');
 
 const User = require('./models/user');
 
@@ -10,60 +10,62 @@ const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
 const errorRoute = require('./controllers/error');
 
-const app = express();
-const port = 3000;
-
-app.set('view engine', 'ejs');
-app.set('views', 'views');
-
-app.use(bodyParser.urlencoded({ extended: false }));
-
-app.use(
-	express.static(path.join(path.dirname(require.main.filename), 'public'))
-);
-
-app.use(async (req, res, next) => {
+(async function startApp() {
 	try {
-		const user = await User.findUserById('qOvaHOI7cc0fOZgcgewGA');
-		req.user = new User(user.username, user.email, user.userId, user.cart);
-		next();
-	} catch (error) {
-		console.log(error);
-	}
-});
+		const app = express();
+		const port = 3000;
+		const uri =
+			'mongodb+srv://marshall:Sqnd1eS83jXaJqAQ@nodecluster.eh4s9.mongodb.net/shop?retryWrites=true&w=majority&appName=nodeCluster';
+		const clientOptions = {
+			serverApi: { version: '1', strict: true, deprecationErrors: true }
+		};
+		app.set('view engine', 'ejs');
+		app.set('views', 'views');
 
-app.use('/admin', adminRoutes);
+		app.use(bodyParser.urlencoded({ extended: false }));
 
-app.use(shopRoutes);
+		app.use(
+			express.static(
+				path.join(path.dirname(require.main.filename), 'public')
+			)
+		);
 
-app.use(errorRoute.get404);
+		app.use(async (req, res, next) => {
+			try {
+				let user = await User.findById('67cc0fa71bf4a445811a8eef');
+				req.user = user;
+				next();
+			} catch (error) {
+				console.log(error);
+			}
+		});
 
-(async function startServer() {
-	try {
-		await mongoConnect(() => {
-			console.log('MongoDB connected');
+		app.use('/admin', adminRoutes);
 
-			app.listen(port, () => {
-				console.log(`Server running on port ${port}`);
+		app.use(shopRoutes);
+
+		app.use(errorRoute.get404);
+
+		await mongoose.connect(uri, clientOptions);
+		await mongoose.connection.db.admin().command({ ping: 1 });
+		console.log('You successfully connected to MongoDB!');
+
+		let user = await User.findOne();
+
+		if (!user) {
+			user = new User({
+				username: 'Alice',
+				email: 'alice@alpha.com',
+				cart: {
+					items: []
+				}
 			});
+		}
+		user.save();
+		app.listen(port, () => {
+			console.log(`Server running on port ${port}`);
 		});
 	} catch (err) {
 		console.log(err);
 	}
 })();
-
-// await sequelize.sync();
-// let user = await User.findByPk(1);
-// let cart;
-
-// if (!user) {
-// 	user = await User.create({
-// 		name: 'Max',
-// 		email: 'test@test.com'
-// 	});
-// 	cart = await user.createCart();
-// }
-
-// cart = await user.getCart();
-
-// console.log(cart);

@@ -1,8 +1,10 @@
 const Product = require('../models/product');
 
+const Order = require('../models/order');
+
 exports.getProducts = async (req, res) => {
 	try {
-		const result = await Product.fetchAll();
+		const result = await Product.find();
 
 		res.render('shop/product-list', {
 			prods: result,
@@ -16,8 +18,8 @@ exports.getProducts = async (req, res) => {
 
 exports.getProduct = async (req, res) => {
 	try {
-		const prodId = req.params.productId;
-		const result = await Product.findBySerial(prodId);
+		const prodId = req.params.productId.trim();
+		const result = await Product.findById(prodId);
 
 		res.render('shop/product-detail', {
 			product: result,
@@ -31,7 +33,7 @@ exports.getProduct = async (req, res) => {
 
 exports.getIndex = async (req, res) => {
 	try {
-		const result = await Product.fetchAll();
+		const result = await Product.find();
 		console.log(req.user);
 
 		res.render('shop/index', {
@@ -46,12 +48,12 @@ exports.getIndex = async (req, res) => {
 
 exports.getCart = async (req, res) => {
 	try {
-		const cartProducts = await req.user.getCart();
-
+		const user = await req.user.populate('cart.items.productId');
+		const products = user.cart.items;
 		res.render('shop/cart', {
 			path: '/cart',
 			pageTitle: 'Cart',
-			products: cartProducts
+			products: products
 		});
 	} catch (error) {
 		console.log(error);
@@ -60,7 +62,7 @@ exports.getCart = async (req, res) => {
 
 exports.getOrders = async (req, res) => {
 	try {
-		const orders = await req.user.getOrders();
+		const orders = await Order.find({ 'user.userId': req.user._id });
 
 		res.render('shop/orders', {
 			path: '/orders',
@@ -74,10 +76,23 @@ exports.getOrders = async (req, res) => {
 
 exports.postOrder = async (req, res) => {
 	try {
-		const order = await req.user.addOrder();
-		console.log(order);
-
-		res.redirect('/order');
+		const user = await req.user.populate('cart.items.productId');
+		const products = await user.cart.items.map((i) => {
+			return {
+				quantity: i.quantity,
+				productData: { ...i.productId._doc }
+			};
+		});
+		const order = new Order({
+			user: {
+				username: req.user.username,
+				userId: req.user
+			},
+			products: products
+		});
+		await order.save();
+		await req.user.clearCart();
+		res.redirect('/orders');
 	} catch (error) {
 		console.log(error);
 	}
@@ -86,9 +101,9 @@ exports.postOrder = async (req, res) => {
 exports.postCart = async (req, res) => {
 	try {
 		const prodId = req.body.productId.trim();
-		const product = await Product.findBySerial(prodId);
-		await req.user.addToCart(product);
-
+		const product = await Product.findById(prodId);
+		const user = await req.user.addToCart(product);
+		console.log(user);
 		res.redirect('/products');
 	} catch (error) {
 		console.log(error);
@@ -99,7 +114,7 @@ exports.postDeleteCartItem = async (req, res) => {
 	try {
 		const prodId = req.body.productId.trim();
 
-		await req.user.deleteItemFromCart(prodId);
+		await req.user.removeFromCart(prodId);
 
 		res.redirect('/cart');
 	} catch (error) {
