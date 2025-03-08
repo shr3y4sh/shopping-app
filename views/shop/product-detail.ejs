@@ -8,7 +8,7 @@
                     <%= product.title %>
                 </h1>
                 <hr>
-                <div>
+                <div class="image">
                     <img class="card__image_detail" src="<%= product.imageurl %> " alt="<%= product.title %> ">
 
                 </div>
@@ -19,9 +19,10 @@
                     <%= product.description %>
                 </p>
 
+                <% if (isAuthenticated) { %>
 
-                <%- include('../includes/add-to-cart.ejs')%>
+                    <%- include('../includes/add-to-cart.ejs')%>
 
-
+                        <% } %>
             </main>
-            <%- include('../includes/end.ejs') %>
+            <%- include('../includes/end.ejs') , {product}%>

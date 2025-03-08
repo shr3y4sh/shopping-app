@@ -2,23 +2,32 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 
+const session = require('express-session');
 const mongoose = require('mongoose');
+const mongoDBStore = require('connect-mongodb-session')(session);
 
 const User = require('./models/user');
 
 const shopRoutes = require('./routes/shop');
 const adminRoutes = require('./routes/admin');
+const authRoutes = require('./routes/auth');
 const errorRoute = require('./controllers/error');
 
 (async function startApp() {
 	try {
 		const app = express();
 		const port = 3000;
-		const uri =
-			'mongodb+srv://marshall:Sqnd1eS83jXaJqAQ@nodecluster.eh4s9.mongodb.net/shop?retryWrites=true&w=majority&appName=nodeCluster';
+
+		const MONGODB_URI =
+			'mongodb+srv://marshall:Sqnd1eS83jXaJqAQ@nodecluster.eh4s9.mongodb.net/shop?appName=nodeCluster';
 		const clientOptions = {
 			serverApi: { version: '1', strict: true, deprecationErrors: true }
 		};
+		const sessionStore = new mongoDBStore({
+			uri: MONGODB_URI,
+			collection: 'sessions'
+		});
+
 		app.set('view engine', 'ejs');
 		app.set('views', 'views');
 
@@ -30,10 +39,24 @@ const errorRoute = require('./controllers/error');
 			)
 		);
 
+		app.use(
+			session({
+				secret: 'my secret string for the session',
+				resave: false,
+				saveUninitialized: false,
+				store: sessionStore
+			})
+		);
+
 		app.use(async (req, res, next) => {
+			if (!req.session.userLoggedIn) {
+				return next();
+			}
 			try {
-				let user = await User.findById('67cc0fa71bf4a445811a8eef');
+				const user = await User.findById(req.session.userLoggedIn._id);
+
 				req.user = user;
+
 				next();
 			} catch (error) {
 				console.log(error);
@@ -44,9 +67,10 @@ const errorRoute = require('./controllers/error');
 
 		app.use(shopRoutes);
 
+		app.use(authRoutes);
 		app.use(errorRoute.get404);
 
-		await mongoose.connect(uri, clientOptions);
+		await mongoose.connect(MONGODB_URI, clientOptions);
 		await mongoose.connection.db.admin().command({ ping: 1 });
 		console.log('You successfully connected to MongoDB!');
 

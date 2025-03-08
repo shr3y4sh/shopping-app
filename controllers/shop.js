@@ -6,10 +6,11 @@ exports.getProducts = async (req, res) => {
 	try {
 		const result = await Product.find();
 
-		res.render('shop/product-list', {
+		await res.render('shop/product-list', {
 			prods: result,
 			pageTitle: 'All Products',
-			path: '/products'
+			path: '/products',
+			isAuthenticated: req.session.isAuthenticated
 		});
 	} catch (error) {
 		console.log(error);
@@ -21,10 +22,11 @@ exports.getProduct = async (req, res) => {
 		const prodId = req.params.productId.trim();
 		const result = await Product.findById(prodId);
 
-		res.render('shop/product-detail', {
+		await res.render('shop/product-detail', {
 			product: result,
 			pageTitle: result.title,
-			path: '/products'
+			path: '/products',
+			isAuthenticated: req.session.isAuthenticated
 		});
 	} catch (error) {
 		console.log(error);
@@ -36,10 +38,11 @@ exports.getIndex = async (req, res) => {
 		const result = await Product.find();
 		console.log(req.user);
 
-		res.render('shop/index', {
+		await res.render('shop/index', {
 			prods: result,
 			pageTitle: 'Shop',
-			path: '/'
+			path: '/',
+			isAuthenticated: req.session.isAuthenticated
 		});
 	} catch (error) {
 		console.log(error);
@@ -50,10 +53,11 @@ exports.getCart = async (req, res) => {
 	try {
 		const user = await req.user.populate('cart.items.productId');
 		const products = user.cart.items;
-		res.render('shop/cart', {
+		await res.render('shop/cart', {
 			path: '/cart',
 			pageTitle: 'Cart',
-			products: products
+			products: products,
+			isAuthenticated: req.session.isAuthenticated
 		});
 	} catch (error) {
 		console.log(error);
@@ -62,12 +66,15 @@ exports.getCart = async (req, res) => {
 
 exports.getOrders = async (req, res) => {
 	try {
-		const orders = await Order.find({ 'user.userId': req.user._id });
+		const orders = await Order.find({
+			'user.userId': req.user._id
+		});
 
-		res.render('shop/orders', {
+		await res.render('shop/orders', {
 			path: '/orders',
 			pageTitle: 'Your Orders',
-			orders: orders
+			orders: orders,
+			isAuthenticated: req.session.isAuthenticated
 		});
 	} catch (error) {
 		console.log(error);
@@ -92,7 +99,7 @@ exports.postOrder = async (req, res) => {
 		});
 		await order.save();
 		await req.user.clearCart();
-		res.redirect('/orders');
+		await res.redirect('/orders');
 	} catch (error) {
 		console.log(error);
 	}
@@ -104,7 +111,7 @@ exports.postCart = async (req, res) => {
 		const product = await Product.findById(prodId);
 		const user = await req.user.addToCart(product);
 		console.log(user);
-		res.redirect('/products');
+		await res.redirect('/products');
 	} catch (error) {
 		console.log(error);
 	}
@@ -116,7 +123,7 @@ exports.postDeleteCartItem = async (req, res) => {
 
 		await req.user.removeFromCart(prodId);
 
-		res.redirect('/cart');
+		await res.redirect('/cart');
 	} catch (error) {
 		console.log(error);
 	}

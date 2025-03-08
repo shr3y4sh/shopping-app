@@ -1,10 +1,11 @@
 const Product = require('../models/product');
 
-exports.getAddProduct = (req, res) => {
-	res.render('admin/edit-product', {
+exports.getAddProduct = async (req, res) => {
+	await res.render('admin/edit-product', {
 		pageTitle: 'Add Product',
 		path: '/admin/add-product',
-		editing: false
+		editing: false,
+		isAuthenticated: req.session.isAuthenticated
 	});
 };
 
@@ -19,12 +20,13 @@ exports.postAddProduct = async (req, res) => {
 		price: price,
 		imageurl: imageUrl,
 		description: description,
-		userId: req.user
+		userId: req.user,
+		isAuthenticated: req.session.isAuthenticated
 	});
 	try {
 		await product.save();
 
-		res.redirect('/');
+		await res.redirect('/');
 	} catch (error) {
 		console.log(error);
 	}
@@ -33,10 +35,11 @@ exports.postAddProduct = async (req, res) => {
 exports.getProducts = async (req, res) => {
 	try {
 		const products = await Product.find();
-		res.render('admin/products', {
+		await res.render('admin/products', {
 			prods: products,
 			pageTitle: 'Admin Products',
-			path: '/admin/products'
+			path: '/admin/products',
+			isAuthenticated: req.session.isAuthenticated
 		});
 	} catch (error) {
 		console.log(error);
@@ -59,11 +62,12 @@ exports.getEditProduct = async (req, res) => {
 			return res.redirect('/');
 		}
 
-		res.render('admin/edit-product', {
+		await res.render('admin/edit-product', {
 			pageTitle: 'Edit Product',
 			path: '/admin/edit-product',
 			editing: true,
-			product: product
+			product: product,
+			isAuthenticated: req.session.isAuthenticated
 		});
 	} catch (error) {
 		console.log(error);
@@ -82,7 +86,7 @@ exports.postEditProduct = async (req, res) => {
 
 	await product.save();
 
-	res.redirect('/admin/products');
+	await res.redirect('/admin/products');
 };
 
 exports.postDeleteProduct = async (req, res) => {
@@ -90,7 +94,7 @@ exports.postDeleteProduct = async (req, res) => {
 		const prodId = req.body.productId;
 		await Product.findByIdAndDelete(prodId);
 
-		res.redirect('/admin/products');
+		await res.redirect('/admin/products');
 	} catch (error) {
 		console.log(error);
 	}
