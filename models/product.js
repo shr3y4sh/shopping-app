@@ -30,8 +30,8 @@ class Product {
 				result = await db.collection('products').insertOne(this);
 			}
 			return result;
-		} catch (err) {
-			console.log(err);
+		} catch (error) {
+			console.log(error);
 		}
 	}
 

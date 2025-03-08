@@ -16,8 +16,8 @@ class User {
 			this.userId = nanoid();
 			const result = await db.collection('users').insertOne(this);
 			return result;
-		} catch (err) {
-			console.log(err);
+		} catch (error) {
+			console.log(error);
 		}
 	}
 
@@ -96,10 +96,52 @@ class User {
 		}
 	}
 
+	async getOrders() {
+		try {
+			const db = getDb();
+			const result = await db
+				.collection('orders')
+				.find({ 'user.userId': this.userId })
+				.toArray();
+			return result;
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
+	async addOrder() {
+		try {
+			console.log(this);
+
+			const db = getDb();
+			const products = await this.getCart();
+			const order = {
+				items: products,
+				user: {
+					username: this.username,
+					userId: this.userId
+				}
+			};
+
+			await db.collection('orders').insertOne(order);
+			this.cart = { items: [] };
+			await db.collection('users').updateOne(
+				{
+					userId: this.userId
+				},
+				{
+					$set: { cart: { items: [] } }
+				}
+			);
+			return order;
+		} catch (error) {
+			console.log(error);
+		}
+	}
+
 	static async findUserById(serial) {
 		try {
 			const db = getDb();
-			console.log(serial);
 
 			const result = await db.collection('users').findOne({
 				userId: serial

@@ -32,6 +32,7 @@ exports.getProduct = async (req, res) => {
 exports.getIndex = async (req, res) => {
 	try {
 		const result = await Product.fetchAll();
+		console.log(req.user);
 
 		res.render('shop/index', {
 			prods: result,
@@ -58,44 +59,37 @@ exports.getCart = async (req, res) => {
 };
 
 exports.getOrders = async (req, res) => {
-	const orders = await req.user.getOrders({ include: ['products'] });
+	try {
+		const orders = await req.user.getOrders();
 
-	console.log(orders);
-
-	res.render('shop/orders', {
-		path: '/orders',
-		pageTitle: 'Your Orders',
-		orders: orders
-	});
+		res.render('shop/orders', {
+			path: '/orders',
+			pageTitle: 'Your Orders',
+			orders: orders
+		});
+	} catch (error) {
+		console.log(error);
+	}
 };
 
 exports.postOrder = async (req, res) => {
-	const cart = await req.user.getCart();
-	let products = await cart.getProducts();
-	console.log(products);
+	try {
+		const order = await req.user.addOrder();
+		console.log(order);
 
-	const order = await req.user.createOrder();
-	products = products.map((product) => {
-		product.OrderItem = {
-			quantity: product.cartItem.quantity
-		};
-		return product;
-	});
-	await order.addProducts(products);
-
-	await cart.setProducts(null);
-
-	res.redirect('/order');
+		res.redirect('/order');
+	} catch (error) {
+		console.log(error);
+	}
 };
 
 exports.postCart = async (req, res) => {
 	try {
 		const prodId = req.body.productId.trim();
 		const product = await Product.findBySerial(prodId);
-		const result = await req.user.addToCart(product);
-		console.log(result);
+		await req.user.addToCart(product);
 
-		res.redirect('/cart');
+		res.redirect('/products');
 	} catch (error) {
 		console.log(error);
 	}

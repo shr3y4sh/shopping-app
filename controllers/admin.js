@@ -22,11 +22,11 @@ exports.postAddProduct = async (req, res) => {
 		req.user.userId
 	);
 	try {
-		const result = await product.save();
-		console.log(result);
+		await product.save();
+
 		res.redirect('/');
-	} catch (err) {
-		console.log(err);
+	} catch (error) {
+		console.log(error);
 	}
 };
 
@@ -92,9 +92,8 @@ exports.postEditProduct = async (req, res) => {
 
 exports.postDeleteProduct = async (req, res) => {
 	try {
-		const serial = req.body.productId;
-		const result = await Product.deleteBySerial(serial);
-		console.log(result);
+		const serial = req.body.productId.trim();
+		await Product.deleteBySerial(serial);
 
 		res.redirect('/admin/products');
 	} catch (error) {

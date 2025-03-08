@@ -25,7 +25,7 @@ app.use(
 app.use(async (req, res, next) => {
 	try {
 		const user = await User.findUserById('qOvaHOI7cc0fOZgcgewGA');
-		req.user = new User(user.name, user.email, user.userId, user.cart);
+		req.user = new User(user.username, user.email, user.userId, user.cart);
 		next();
 	} catch (error) {
 		console.log(error);
