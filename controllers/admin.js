@@ -4,8 +4,7 @@ exports.getAddProduct = async (req, res) => {
 	await res.render('admin/edit-product', {
 		pageTitle: 'Add Product',
 		path: '/admin/add-product',
-		editing: false,
-		isAuthenticated: req.session.isAuthenticated
+		editing: false
 	});
 };
 
@@ -20,8 +19,7 @@ exports.postAddProduct = async (req, res) => {
 		price: price,
 		imageurl: imageUrl,
 		description: description,
-		userId: req.user,
-		isAuthenticated: req.session.isAuthenticated
+		userId: req.user
 	});
 	try {
 		await product.save();
@@ -38,8 +36,7 @@ exports.getProducts = async (req, res) => {
 		await res.render('admin/products', {
 			prods: products,
 			pageTitle: 'Admin Products',
-			path: '/admin/products',
-			isAuthenticated: req.session.isAuthenticated
+			path: '/admin/products'
 		});
 	} catch (error) {
 		console.log(error);
@@ -66,8 +63,7 @@ exports.getEditProduct = async (req, res) => {
 			pageTitle: 'Edit Product',
 			path: '/admin/edit-product',
 			editing: true,
-			product: product,
-			isAuthenticated: req.session.isAuthenticated
+			product: product
 		});
 	} catch (error) {
 		console.log(error);

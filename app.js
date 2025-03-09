@@ -1,10 +1,12 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
-
 const session = require('express-session');
 const mongoose = require('mongoose');
 const mongoDBStore = require('connect-mongodb-session')(session);
+const csrf = require('csurf');
+const cookie = require('cookie-parser');
+const flash = require('express-flash');
 
 const User = require('./models/user');
 
@@ -28,6 +30,8 @@ const errorRoute = require('./controllers/error');
 			collection: 'sessions'
 		});
 
+		const csrfProtection = csrf();
+
 		app.set('view engine', 'ejs');
 		app.set('views', 'views');
 
@@ -39,6 +43,8 @@ const errorRoute = require('./controllers/error');
 			)
 		);
 
+		app.use(cookie());
+
 		app.use(
 			session({
 				secret: 'my secret string for the session',
@@ -47,6 +53,9 @@ const errorRoute = require('./controllers/error');
 				store: sessionStore
 			})
 		);
+
+		app.use(csrfProtection);
+		app.use(flash());
 
 		app.use(async (req, res, next) => {
 			if (!req.session.userLoggedIn) {
@@ -63,6 +72,12 @@ const errorRoute = require('./controllers/error');
 			}
 		});
 
+		app.use((req, res, next) => {
+			res.locals.isAuthenticated = req.session.isAuthenticated;
+			res.locals.csrfToken = req.csrfToken();
+			next();
+		});
+
 		app.use('/admin', adminRoutes);
 
 		app.use(shopRoutes);
@@ -74,18 +89,6 @@ const errorRoute = require('./controllers/error');
 		await mongoose.connection.db.admin().command({ ping: 1 });
 		console.log('You successfully connected to MongoDB!');
 
-		let user = await User.findOne();
-
-		if (!user) {
-			user = new User({
-				username: 'Alice',
-				email: 'alice@alpha.com',
-				cart: {
-					items: []
-				}
-			});
-		}
-		user.save();
 		app.listen(port, () => {
 			console.log(`Server running on port ${port}`);
 		});
