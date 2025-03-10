@@ -48,7 +48,7 @@ exports.getIndex = async (req, res) => {
 
 exports.getCart = async (req, res) => {
 	try {
-		const user = req.user.populate('cart.items.productId');
+		const user = await req.user.populate('cart.items.productId');
 		const products = user.cart.items;
 		await res.render('shop/cart', {
 			path: '/cart',
@@ -78,7 +78,7 @@ exports.getOrders = async (req, res) => {
 
 exports.postOrder = async (req, res) => {
 	try {
-		const user = req.user.populate('cart.items.productId');
+		const user = await req.user.populate('cart.items.productId');
 		const products = await user.cart.items.map((i) => {
 			return {
 				quantity: i.quantity,

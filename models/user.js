@@ -23,7 +23,10 @@ const userSchema = new mongoose.Schema({
 				}
 			}
 		]
-	}
+	},
+
+	resetToken: String,
+	resetTokenExpiration: Date
 });
 
 userSchema.methods.clearCart = async function () {
