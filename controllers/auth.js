@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 const sgMail = require('@sendgrid/mail');
-
+const { validationResult } = require('express-validator');
 require('dotenv').config();
 
 const { env } = require('process');
@@ -14,12 +14,16 @@ sgMail.setApiKey(env.SEND_GRID_APIKEY);
 exports.getLogin = async (req, res) => {
 	try {
 		let message = req.flash('error');
-		console.log(message);
 
 		await res.render('auth/login', {
 			path: '/login',
 			pageTitle: 'Login',
-			errorMessage: message[0]
+			errorMessage: message[0],
+			oldMessage: {
+				email: '',
+				password: ''
+			},
+			validation: []
 		});
 	} catch (error) {
 		console.log(error);
@@ -29,11 +33,16 @@ exports.getLogin = async (req, res) => {
 exports.getSignup = async (req, res) => {
 	try {
 		let message = req.flash('email_invalid');
-		console.log(message);
 		await res.render('auth/signup', {
 			path: '/signup',
 			pageTitle: 'Signup',
-			errorMessage: message[0]
+			errorMessage: message[0],
+			oldMessage: {
+				email: '',
+				password: '',
+				confirmPassword: ''
+			},
+			validation: []
 		});
 	} catch (error) {
 		console.log(error);
@@ -43,7 +52,6 @@ exports.getSignup = async (req, res) => {
 exports.getReset = async (req, res) => {
 	try {
 		let message = req.flash('error');
-		console.log(message);
 
 		await res.render('auth/reset', {
 			path: '/reset',
@@ -88,23 +96,35 @@ exports.postLogin = async (req, res) => {
 		const email = req.body.email;
 		const password = req.body.password;
 
-		if (!email || !password) {
-			req.flash('error', 'Field(s) cannot be empty');
-			return await res.redirect('/login');
+		const validationErrors = validationResult(req);
+		if (!validationErrors.isEmpty()) {
+			return await res.status(422).render('auth/login', {
+				path: '/login',
+				pageTitle: 'Login',
+				errorMessage: validationErrors.array()[0].msg,
+				oldMessage: {
+					email: email,
+					password: password
+				},
+				validation: validationErrors.array()
+			});
 		}
 
 		const user = await User.findOne({ email: email });
 
-		if (!user) {
-			req.flash('error', 'Invalid email or password.');
-			return await res.redirect('/login');
-		}
-
 		const isMatched = await bcrypt.compare(password, user.password);
 
 		if (!isMatched) {
-			req.flash('error', 'Invalid email or password.');
-			return await res.redirect('/login');
+			return await res.render('auth/login', {
+				path: '/login',
+				pageTitle: 'Login',
+				errorMessage: 'Invalid Email or Password',
+				oldMessage: {
+					email: email,
+					password: password
+				},
+				validation: []
+			});
 		}
 		req.session.userLoggedIn = user;
 
@@ -120,26 +140,27 @@ exports.postSignup = async (req, res) => {
 	try {
 		const email = req.body.email;
 		const password = req.body.password;
-		// const confirmpassword = req.body.confirmpassword;
+		// const confirmpassword = req.body.confirmPassword;
 
-		if (!email || !password) {
-			req.flash('email_invalid', 'Field(s) cannot be empty');
-			return await res.redirect('/signup');
-		}
+		const validationErrors = validationResult(req);
 
-		let user = await User.findOne({ email: email });
-
-		if (user) {
-			req.flash(
-				'email_invalid',
-				'Email already exists, please choose a different one.'
-			);
-			return await res.redirect('/signup');
+		if (!validationErrors.isEmpty()) {
+			return await res.status(422).render('auth/signup', {
+				path: '/signup',
+				pageTitle: 'Signup',
+				errorMessage: validationErrors.array()[0].msg,
+				oldMessage: {
+					email: email,
+					password: password,
+					confirmPassword: req.body.confirmPassword
+				},
+				validation: validationErrors.array()
+			});
 		}
 
 		const hash = await bcrypt.hash(password, 12);
 
-		user = new User({
+		const user = new User({
 			email: email,
 			password: hash,
 			cart: { items: [] }

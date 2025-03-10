@@ -12,14 +12,17 @@
                         <%= errorMessage %>
                     </div>
                     <% } %>
-                        <form class="login-form" action="/login-form" method="post">
+                        <form class="login-form" action="/login-form" method="post" novalidate>
                             <div class="form-control">
                                 <label for="email">Email: </label>
-                                <input type="email" name="email" id="email">
+                                <input class="<%=validation.find(e=> e.path === 'email') ? 'invalid' : '' %>"
+                                    type="email" name="email" id="email" value=<%=oldMessage.email %> >
                             </div>
                             <div class="form-control">
                                 <label for="password">Password: </label>
-                                <input type="password" name="password" id="password">
+                                <input
+                                    class="<%=validation.find(e=> (e.path === 'password' || e.path === 'email')) ? 'invalid' : '' %>"
+                                    type="password" name="password" id="password" value=<%=oldMessage.password%>>
                             </div>
                             <div>
                                 <input type="hidden" name="_csrf" value=<%=csrfToken %> />
