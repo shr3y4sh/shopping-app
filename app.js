@@ -63,12 +63,19 @@ const errorRoute = require('./controllers/error');
 		app.use(csrfProtection);
 		app.use(flash());
 
+		// Authenticating csrf token
+		app.use((req, res, next) => {
+			res.locals.isAuthenticated = req.session.isAuthenticated;
+			res.locals.csrfToken = req.csrfToken();
+			next();
+		});
+
 		// using sessions to persist user login
 		app.use(async (req, res, next) => {
-			if (!req.session.userLoggedIn) {
-				return next();
-			}
 			try {
+				if (!req.session.userLoggedIn) {
+					return next();
+				}
 				const user = await User.findById(req.session.userLoggedIn._id);
 
 				if (!user) {
@@ -78,15 +85,10 @@ const errorRoute = require('./controllers/error');
 
 				next();
 			} catch (error) {
-				throw new Error(error);
+				const err = new Error(error);
+				err.httpStatusCode = 500;
+				return next(err);
 			}
-		});
-
-		// Authenticating csrf token
-		app.use((req, res, next) => {
-			res.locals.isAuthenticated = req.session.isAuthenticated;
-			res.locals.csrfToken = req.csrfToken();
-			next();
 		});
 
 		// website routes
@@ -94,11 +96,14 @@ const errorRoute = require('./controllers/error');
 		app.use(shopRoutes);
 		app.use(authRoutes);
 
-		app.use('/500', errorRoute.get500);
 		app.use(errorRoute.get404);
 
-		app.use(async (error, req, res) => {
-			return await res.redirect('/500');
+		app.use(async (error, req, res, next) => {
+			try {
+				return errorRoute.get500(req, res, next);
+			} catch (error) {
+				next(error);
+			}
 		});
 
 		// connection to mongodb

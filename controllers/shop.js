@@ -2,7 +2,7 @@ const Product = require('../models/product');
 
 const Order = require('../models/order');
 
-exports.getProducts = async (req, res) => {
+exports.getProducts = async (req, res, next) => {
 	try {
 		const result = await Product.find();
 
@@ -12,11 +12,13 @@ exports.getProducts = async (req, res) => {
 			path: '/products'
 		});
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.getProduct = async (req, res) => {
+exports.getProduct = async (req, res, next) => {
 	try {
 		const prodId = req.params.productId.trim();
 		const result = await Product.findById(prodId);
@@ -27,11 +29,13 @@ exports.getProduct = async (req, res) => {
 			path: '/products'
 		});
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.getIndex = async (req, res) => {
+exports.getIndex = async (req, res, next) => {
 	try {
 		const result = await Product.find();
 		console.log(req.user);
@@ -42,11 +46,13 @@ exports.getIndex = async (req, res) => {
 			path: '/'
 		});
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.getCart = async (req, res) => {
+exports.getCart = async (req, res, next) => {
 	try {
 		const user = await req.user.populate('cart.items.productId');
 		const products = user.cart.items;
@@ -56,11 +62,13 @@ exports.getCart = async (req, res) => {
 			products: products
 		});
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.getOrders = async (req, res) => {
+exports.getOrders = async (req, res, next) => {
 	try {
 		const orders = await Order.find({
 			'user.userId': req.user._id
@@ -72,11 +80,13 @@ exports.getOrders = async (req, res) => {
 			orders: orders
 		});
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.postOrder = async (req, res) => {
+exports.postOrder = async (req, res, next) => {
 	try {
 		const user = await req.user.populate('cart.items.productId');
 		const products = await user.cart.items.map((i) => {
@@ -96,11 +106,13 @@ exports.postOrder = async (req, res) => {
 		req.user.clearCart();
 		await res.redirect('/orders');
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.postCart = async (req, res) => {
+exports.postCart = async (req, res, next) => {
 	try {
 		const prodId = req.body.productId.trim();
 		const product = await Product.findById(prodId);
@@ -108,11 +120,13 @@ exports.postCart = async (req, res) => {
 		console.log(user);
 		await res.redirect('/products');
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.postDeleteCartItem = async (req, res) => {
+exports.postDeleteCartItem = async (req, res, next) => {
 	try {
 		const prodId = req.body.productId.trim();
 
@@ -120,6 +134,8 @@ exports.postDeleteCartItem = async (req, res) => {
 
 		await res.redirect('/cart');
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };

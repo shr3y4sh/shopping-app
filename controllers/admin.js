@@ -1,30 +1,35 @@
 const Product = require('../models/product');
 const { validationResult } = require('express-validator');
 
-exports.getAddProduct = async (req, res) => {
-	await res.render('admin/edit-product', {
-		pageTitle: 'Add Product',
-		path: '/admin/add-product',
-		editing: false,
-		hasError: false,
-		errorMessage: '',
-		oldMessage: {
-			title: '',
-			imageurl: '',
-			price: '',
-			description: ''
-		},
-		validation: []
-	});
+exports.getAddProduct = async (req, res, next) => {
+	try {
+		await res.render('admin/edit-product', {
+			pageTitle: 'Add Product',
+			path: '/admin/add-product',
+			editing: false,
+			hasError: false,
+			errorMessage: '',
+			oldMessage: {
+				title: '',
+				imageurl: '',
+				price: '',
+				description: ''
+			},
+			validation: []
+		});
+	} catch (error) {
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
+	}
 };
 
-exports.postAddProduct = async (req, res) => {
+exports.postAddProduct = async (req, res, next) => {
 	try {
 		const title = req.body.title;
 		const imageurl = req.body.imageUrl;
 		const price = req.body.price;
 		const description = req.body.description;
-
 		const validationErrors = validationResult(req);
 		if (!validationErrors.isEmpty()) {
 			return await res.status(422).render('admin/edit-product', {
@@ -55,11 +60,13 @@ exports.postAddProduct = async (req, res) => {
 
 		await res.redirect('/');
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.getProducts = async (req, res) => {
+exports.getProducts = async (req, res, next) => {
 	try {
 		// { userId: req.user._id }
 		const products = await Product.find({ userId: req.user._id });
@@ -69,7 +76,9 @@ exports.getProducts = async (req, res) => {
 			path: '/admin/products'
 		});
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
@@ -84,7 +93,7 @@ exports.getEditProduct = async (req, res, next) => {
 		const prodId = req.params.productId;
 
 		const product = await Product.findById(prodId);
-
+		// throw new Error('');
 		if (!product) {
 			return res.redirect('/');
 		}
@@ -165,14 +174,16 @@ exports.postEditProduct = async (req, res, next) => {
 	}
 };
 
-exports.postDeleteProduct = async (req, res) => {
+exports.postDeleteProduct = async (req, res, next) => {
 	try {
 		const prodId = req.body.productId;
 		await Product.findOneAndDelete({ _id: prodId, userId: req.user._id });
 
 		await res.redirect('/admin/products');
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 

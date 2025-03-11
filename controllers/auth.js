@@ -11,7 +11,7 @@ const User = require('../models/user');
 
 sgMail.setApiKey(env.SEND_GRID_APIKEY);
 
-exports.getLogin = async (req, res) => {
+exports.getLogin = async (req, res, next) => {
 	try {
 		let message = req.flash('error');
 
@@ -26,11 +26,13 @@ exports.getLogin = async (req, res) => {
 			validation: []
 		});
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.getSignup = async (req, res) => {
+exports.getSignup = async (req, res, next) => {
 	try {
 		let message = req.flash('email_invalid');
 		await res.render('auth/signup', {
@@ -45,11 +47,13 @@ exports.getSignup = async (req, res) => {
 			validation: []
 		});
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.getReset = async (req, res) => {
+exports.getReset = async (req, res, next) => {
 	try {
 		let message = req.flash('error');
 
@@ -59,11 +63,13 @@ exports.getReset = async (req, res) => {
 			errorMessage: message[0]
 		});
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.getNewPassword = async (req, res) => {
+exports.getNewPassword = async (req, res, next) => {
 	try {
 		const token = req.params.token;
 
@@ -87,11 +93,13 @@ exports.getNewPassword = async (req, res) => {
 			passwordToken: token
 		});
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.postLogin = async (req, res) => {
+exports.postLogin = async (req, res, next) => {
 	try {
 		const email = req.body.email;
 		const password = req.body.password;
@@ -132,11 +140,13 @@ exports.postLogin = async (req, res) => {
 		await req.session.save();
 		return await res.redirect('/');
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.postSignup = async (req, res) => {
+exports.postSignup = async (req, res, next) => {
 	try {
 		const email = req.body.email;
 		const password = req.body.password;
@@ -178,20 +188,24 @@ exports.postSignup = async (req, res) => {
 
 		return await sgMail.send(signupMessage);
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.postLogout = async (req, res) => {
+exports.postLogout = async (req, res, next) => {
 	try {
 		await req.session.destroy();
 		await res.redirect('/');
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.postReset = async (req, res) => {
+exports.postReset = async (req, res, next) => {
 	try {
 		const token = nanoid();
 		const user = await User.findOne({ email: req.body.email });
@@ -216,11 +230,13 @@ exports.postReset = async (req, res) => {
 		res.redirect('/');
 		return await sgMail.send(resetMessage);
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
-exports.postNewPassword = async (req, res) => {
+exports.postNewPassword = async (req, res, next) => {
 	try {
 		const newPassword = req.body.newPassword;
 		const passToken = req.body.passwordToken;
@@ -241,17 +257,21 @@ exports.postNewPassword = async (req, res) => {
 		await user.save();
 		return await res.redirect('/login');
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 	}
 };
 
 /*
 
-exports.postTemplate = async (req, res) => {
+exports.postTemplate = async (req, res, next) => {
 	try {
 		
 	} catch (error) {
-		console.log(error);
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
 		
 	}
 }
