@@ -71,11 +71,14 @@ const errorRoute = require('./controllers/error');
 			try {
 				const user = await User.findById(req.session.userLoggedIn._id);
 
+				if (!user) {
+					return next();
+				}
 				req.user = user;
 
 				next();
 			} catch (error) {
-				console.log(error);
+				throw new Error(error);
 			}
 		});
 
@@ -90,7 +93,13 @@ const errorRoute = require('./controllers/error');
 		app.use('/admin', adminRoutes);
 		app.use(shopRoutes);
 		app.use(authRoutes);
+
+		app.use('/500', errorRoute.get500);
 		app.use(errorRoute.get404);
+
+		app.use(async (error, req, res) => {
+			return await res.redirect('/500');
+		});
 
 		// connection to mongodb
 		await mongoose.connect(MONGODB_URI, clientOptions);
