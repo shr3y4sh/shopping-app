@@ -7,6 +7,11 @@ const mongoDBStore = require('connect-mongodb-session')(session);
 const csrf = require('csurf');
 const cookie = require('cookie-parser');
 const flash = require('express-flash');
+const multer = require('multer');
+
+require('dotenv').config();
+
+const { env } = require('process');
 
 const User = require('./models/user');
 
@@ -15,21 +20,41 @@ const adminRoutes = require('./routes/admin');
 const authRoutes = require('./routes/auth');
 const errorRoute = require('./controllers/error');
 
+const fileStorage = multer.diskStorage({
+	destination: (req, file, callback) => {
+		callback(null, 'images');
+	},
+	filename: (req, file, callback) => {
+		callback(null, new Date().toISOString() + '-' + file.originalname);
+	}
+});
+
+const fileFilter = (req, file, callback) => {
+	if (
+		file.mimetype === 'image/png' ||
+		file.mimetype === 'image/jpg' ||
+		file.mimetype === 'image/jpeg' ||
+		file.mimetype === 'image/avif'
+	) {
+		callback(null, true);
+	} else {
+		callback(null, false);
+	}
+};
+
+const app = express();
+const PORT = 3000;
+
+const clientOptions = {
+	serverApi: { version: '1', strict: true, deprecationErrors: true }
+};
+const sessionStore = new mongoDBStore({
+	uri: env.MONGODB_URI,
+	collection: 'sessions'
+});
+
 (async function startApp() {
 	try {
-		const app = express();
-		const port = 3000;
-
-		const MONGODB_URI =
-			'mongodb+srv://marshall:Sqnd1eS83jXaJqAQ@nodecluster.eh4s9.mongodb.net/shop?appName=nodeCluster';
-		const clientOptions = {
-			serverApi: { version: '1', strict: true, deprecationErrors: true }
-		};
-		const sessionStore = new mongoDBStore({
-			uri: MONGODB_URI,
-			collection: 'sessions'
-		});
-
 		const csrfProtection = csrf();
 
 		// Using Embedded Javascript as template engine
@@ -39,10 +64,23 @@ const errorRoute = require('./controllers/error');
 		// To read the req.body elements
 		app.use(bodyParser.urlencoded({ extended: false }));
 
+		// To get file uploads
+		app.use(
+			multer({ storage: fileStorage, fileFilter: fileFilter }).single(
+				'image'
+			)
+		);
+
 		// To use static files like css or images
 		app.use(
 			express.static(
 				path.join(path.dirname(require.main.filename), 'public')
+			)
+		);
+		app.use(
+			'/images',
+			express.static(
+				path.join(path.dirname(require.main.filename), 'images')
 			)
 		);
 
@@ -107,13 +145,13 @@ const errorRoute = require('./controllers/error');
 		});
 
 		// connection to mongodb
-		await mongoose.connect(MONGODB_URI, clientOptions);
+		await mongoose.connect(env.MONGODB_URI, clientOptions);
 		await mongoose.connection.db.admin().command({ ping: 1 });
 		console.log('You successfully connected to MongoDB!');
 
 		// connect to server localhost:3000
-		app.listen(port, () => {
-			console.log(`Server running on port ${port}`);
+		app.listen(PORT, () => {
+			console.log(`Server running on PORT ${PORT}`);
 		});
 	} catch (err) {
 		console.log(err);

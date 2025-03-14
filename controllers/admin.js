@@ -27,7 +27,10 @@ exports.getAddProduct = async (req, res, next) => {
 exports.postAddProduct = async (req, res, next) => {
 	try {
 		const title = req.body.title;
-		const imageurl = req.body.imageUrl;
+		const image = req.file;
+
+		console.log(image);
+
 		const price = req.body.price;
 		const description = req.body.description;
 		const validationErrors = validationResult(req);
@@ -47,6 +50,23 @@ exports.postAddProduct = async (req, res, next) => {
 				validation: validationErrors.array()
 			});
 		}
+		if (!image) {
+			return await res.status(422).render('admin/edit-product', {
+				path: '/admin/add-product',
+				pageTitle: 'Add Product',
+				editing: false,
+				hasError: true,
+				errorMessage: 'Only files of types jpg/jpeg/png/avif accepted',
+				oldMessage: {
+					title: title,
+					price: price,
+					description: description
+				},
+				validation: validationErrors.array()
+			});
+		}
+
+		const imageurl = image.path;
 
 		const product = new Product({
 			title: title,
@@ -129,14 +149,8 @@ exports.postEditProduct = async (req, res, next) => {
 		const prodId = req.body.productId;
 		const title = req.body.title;
 		const price = req.body.price;
-		const imageurl = req.body.imageUrl;
+		const image = req.file;
 		const description = req.body.description;
-
-		const product = await Product.findById(prodId);
-
-		if (product.userId.toString() !== req.user._id.toString()) {
-			return await res.redirect('/');
-		}
 
 		const validationErrors = validationResult(req);
 		console.log(validationErrors);
@@ -151,7 +165,6 @@ exports.postEditProduct = async (req, res, next) => {
 				errorMessage: validationErrors.array()[0].msg,
 				oldMessage: {
 					title: title,
-					imageurl: imageurl,
 					price: price,
 					description: description
 				},
@@ -159,9 +172,17 @@ exports.postEditProduct = async (req, res, next) => {
 			});
 		}
 
+		const product = await Product.findById(prodId);
+
+		if (product.userId.toString() !== req.user._id.toString()) {
+			return await res.redirect('/');
+		}
+
 		product.title = title;
 		product.price = price;
-		product.imageurl = imageurl;
+		if (image) {
+			product.imageurl = image.path;
+		}
 		product.description = description;
 
 		await product.save();
