@@ -1,3 +1,5 @@
+const pdfHelper = require('../util/pdf-create');
+
 const Product = require('../models/product');
 
 const Order = require('../models/order');
@@ -133,6 +135,28 @@ exports.postDeleteCartItem = async (req, res, next) => {
 		req.user.removeFromCart(prodId);
 
 		await res.redirect('/cart');
+	} catch (error) {
+		const err = new Error(error);
+		err.httpStatusCode = 500;
+		return next(err);
+	}
+};
+
+exports.getInvoice = async (req, res, next) => {
+	try {
+		const orderId = req.params.orderId;
+
+		const order = await Order.findById(orderId);
+
+		if (!order) {
+			return next(new Error('No order found'));
+		}
+
+		if (order.user.userId.toString() !== req.user._id.toString()) {
+			return next(new Error('Unauthorized'));
+		}
+
+		pdfHelper(order, res);
 	} catch (error) {
 		const err = new Error(error);
 		err.httpStatusCode = 500;
