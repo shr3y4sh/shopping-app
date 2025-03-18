@@ -137,7 +137,7 @@ exports.postLogin = async (req, res, next) => {
 
 		req.session.isAuthenticated = true;
 		await req.session.save();
-		return await res.redirect('/');
+		return res.redirect('/');
 	} catch (error) {
 		const err = new Error(error);
 		err.httpStatusCode = 500;
@@ -183,9 +183,9 @@ exports.postSignup = async (req, res, next) => {
 		};
 
 		await user.save();
-		res.redirect('/login');
+		await res.redirect('/login');
 
-		return await sgMail.send(signupMessage);
+		return sgMail.send(signupMessage);
 	} catch (error) {
 		const err = new Error(error);
 		err.httpStatusCode = 500;
@@ -196,7 +196,7 @@ exports.postSignup = async (req, res, next) => {
 exports.postLogout = async (req, res, next) => {
 	try {
 		await req.session.destroy();
-		await res.redirect('/');
+		res.redirect('/');
 	} catch (error) {
 		const err = new Error(error);
 		err.httpStatusCode = 500;
@@ -226,8 +226,8 @@ exports.postReset = async (req, res, next) => {
 				<p><strong>Click this <a href="http://localhost:3000/reset/${token}" target="_blank"><em>Link</em></a></strong></p>`
 		};
 
-		res.redirect('/');
-		return await sgMail.send(resetMessage);
+		await res.redirect('/');
+		return sgMail.send(resetMessage);
 	} catch (error) {
 		const err = new Error(error);
 		err.httpStatusCode = 500;
@@ -254,7 +254,7 @@ exports.postNewPassword = async (req, res, next) => {
 		user.resetTokenExpiration = undefined;
 
 		await user.save();
-		return await res.redirect('/login');
+		return res.redirect('/login');
 	} catch (error) {
 		const err = new Error(error);
 		err.httpStatusCode = 500;

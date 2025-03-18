@@ -21,8 +21,8 @@
 
                 <% if (isAuthenticated) { %>
 
-                    <%- include('../includes/add-to-cart.ejs')%>
+                    <%- include('../includes/add-to-cart.ejs'), { product }%>
 
                         <% } %>
             </main>
-            <%- include('../includes/end.ejs') , {product}%>
+            <%- include('../includes/end.ejs')%>

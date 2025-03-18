@@ -138,6 +138,8 @@ const sessionStore = new mongoDBStore({
 
 		app.use(async (error, req, res, next) => {
 			try {
+				console.log(error);
+
 				return errorRoute.get500(req, res, next);
 			} catch (error) {
 				next(error);
