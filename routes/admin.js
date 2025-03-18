@@ -41,10 +41,10 @@ routers.get(
 	adminController.getEditProduct
 );
 
-routers.post(
-	'/delete-product',
+routers.delete(
+	'/product/:productId',
 	authentication,
-	adminController.postDeleteProduct
+	adminController.deleteProduct
 );
 
 module.exports = routers;
